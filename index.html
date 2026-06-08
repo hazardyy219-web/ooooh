@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday! 🎀</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=ZCOOL+KuaiLe&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== 全局重置 & 变量 ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --pink-50: #FFF0F5;
+      --pink-100: #FFE4E9;
+      --pink-200: #FFD6DE;
+      --pink-300: #FFB5C2;
+      --pink-400: #FF8FA3;
+      --pink-500: #E8384F;
+      --pink-600: #C62840;
+      --cream: #FFF8F5;
+      --white: #FFFFFF;
+      --text: #5D4037;
+      --text-light: #8D6E63;
+      --shadow-pink: rgba(232, 56, 79, 0.12);
+      --shadow-soft: rgba(93, 64, 55, 0.08);
+      --gold: #FFE082;
+
+      --title-size: clamp(2.2rem, 7vw, 4.2rem);
+      --subtitle-size: clamp(0.9rem, 2.8vw, 1.4rem);
+      --body-size: clamp(0.85rem, 2.2vw, 1.05rem);
+      --letter-size: clamp(1rem, 2.8vw, 1.25rem);
+      --envelope-w: clamp(260px, 50vw, 340px);
+      --envelope-h: clamp(190px, 36vw, 250px);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Nunito', 'ZCOOL KuaiLe', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 背景柔光渐变，增加层次感 */
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(ellipse at 50% 40%, rgba(255, 180, 200, 0.12) 0%, transparent 70%);
+    }
+
+    /* ===== 加载淡入 ===== */
+    .app {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      opacity: 0;
+      animation: appFadeIn 1.2s ease 0.3s forwards;
+    }
+
+    @keyframes appFadeIn {
+      0%   { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* ===== 背景蝴蝶结图案 ===== */
+    .bg-pattern {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M60 40 C50 28 30 28 25 38 C20 48 30 58 45 62 C30 66 20 76 25 86 C30 96 50 96 60 84 C70 96 90 96 95 86 C100 76 90 66 75 62 C90 58 100 48 95 38 C90 28 70 28 60 40Z' fill='%23FFD6DE' opacity='0.30'/%3E%3C/svg%3E");
+      background-size: 140px 140px;
+      background-repeat: repeat;
+    }
+
+    /* ===== 浮动粒子 ===== */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      top: -30px;
+      font-size: 14px;
+      opacity: 0;
+      animation: particleFall linear infinite;
+      user-select: none;
+    }
+
+    @keyframes particleFall {
+      0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.5; }
+      100% { transform: translateY(calc(100vh + 40px)) translateX(calc(var(--drift, 80) * 1px)) rotate(360deg); opacity: 0; }
+    }
+
+    /* ===== 页面容器 ===== */
+    .page {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .page.hidden {
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+    }
+
+    /* 封面的入场动画 */
+    .cover-title,
+    .cover-subtitle {
+      opacity: 0;
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .cover-title         { animation-delay: 0.2s; }
+    .cover-subtitle      { animation-delay: 0.4s; }
+
+    @keyframes fadeInUp {
+      0%   { opacity: 0; transform: translateY(18px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ======== 标题文字增强 ======== */
+
+    /* 标题外部容器 —— 负责悬停放大，与内部弹跳动画独立 */
+    .title-wrapper {
+      display: inline-block;
+      position: relative;
+      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: default;
+    }
+
+    .title-wrapper:hover {
+      transform: scale(1.07);
+    }
+
+    .title-wrapper:hover .cover-title {
+      animation-play-state: paused;
+      filter: drop-shadow(0 0 22px rgba(232, 56, 79, 0.30))
+             drop-shadow(0 0 50px rgba(232, 56, 79, 0.12));
+    }
+
+    /* 标题容器 —— 直接文本 + 渐变 + 发光 + 动画 */
+    .cover-title {
+      font-family: 'Fredoka', 'Nunito', sans-serif;
+      font-size: var(--title-size);
+      font-weight: 700;
+      letter-spacing: 2px;
+      line-height: 1.2;
+      white-space: nowrap;
+      position: relative;
+      display: inline-block;
+      color: var(--pink-500);
+      background: linear-gradient(135deg, var(--pink-500), var(--pink-400));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 14px rgba(232, 56, 79, 0.18))
+             drop-shadow(0 0 30px rgba(232, 56, 79, 0.07));
+      transition: filter 0.5s ease;
+      /* 加载时整体淡入+缩放，然后持续柔和弹跳 */
+      animation: fadeInUp 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards,
+                 titleBounce 3.6s ease-in-out 1.4s infinite;
+    }
+
+    @keyframes titleBounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+
+    /* 蝴蝶结装饰 */
+    .cover-title .bow-deco {
+      position: absolute;
+      top: -12px;
+      right: -28px;
+      font-size: calc(var(--title-size) * 0.42);
+      -webkit-text-fill-color: initial;
+      filter: none;
+      animation: bowSway 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes bowSway {
+      0%, 100% { transform: rotate(-5deg); }
+      50%      { transform: rotate(5deg); }
+    }
+
+    /* 标题周围浮动爱心粒子 */
+    .title-particles {
+      position: absolute;
+      inset: -30px -40px;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 0;
+    }
+
+    .title-particle {
+      position: absolute;
+      font-size: 11px;
+      opacity: 0;
+      animation: titleParticleFloat 5s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes titleParticleFloat {
+      0%   { opacity: 0; transform: translateY(0) translateX(0) scale(0.5); }
+      20%  { opacity: 0.4; }
+      80%  { opacity: 0.25; }
+      100% { opacity: 0; transform: translateY(-60px) translateX(20px) scale(1.1); }
+    }
+
+    /* ======== 封面页 ======== */
+    #cover {
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .cover-content {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .cover-subtitle {
+      font-family: 'ZCOOL KuaiLe', sans-serif;
+      font-size: var(--subtitle-size);
+      color: var(--text-light);
+      margin-top: 10px;
+      letter-spacing: 4px;
+    }
+
+    .cover-subtitle span {
+      color: var(--pink-500);
+    }
+
+    /* Hello Kitty 插画 */
+    .cover-illustration {
+      width: min(280px, 60vw);
+      height: min(280px, 60vw);
+      margin: 18px 0 20px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow:
+        0 8px 32px var(--shadow-pink),
+        0 0 0 6px var(--pink-100),
+        0 0 0 10px var(--white);
+      position: relative;
+      background: var(--pink-50);
+      transition: transform 0.4s ease;
+    }
+
+    .cover-illustration:hover {
+      transform: scale(1.03);
+    }
+
+    .cover-illustration img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cover-illustration .fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      font-size: 100px;
+      background: linear-gradient(135deg, var(--pink-100), var(--pink-50));
+    }
+
+    /* 信封按钮 */
+    .envelope-btn {
+      position: relative;
+      z-index: 4;
+      width: 72px;
+      height: 72px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--pink-300), var(--pink-400));
+      color: var(--white);
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow:
+        0 4px 16px var(--shadow-pink),
+        0 0 0 4px var(--pink-100);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s forwards,
+                 envelopeBounce 2s ease-in-out 1.7s infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .envelope-btn:hover {
+      transform: scale(1.12);
+      box-shadow:
+        0 6px 24px var(--shadow-pink),
+        0 0 0 6px var(--pink-200);
+    }
+
+    .envelope-btn:active {
+      transform: scale(0.95);
+    }
+
+    @keyframes envelopeBounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    .envelope-btn-label {
+      font-family: 'ZCOOL KuaiLe', sans-serif;
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 10px;
+      letter-spacing: 2px;
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 1.1s forwards,
+                 labelPulse 2s ease-in-out 1.9s infinite;
+    }
+
+    @keyframes labelPulse {
+      0%, 100% { opacity: 0.6; }
+      50%      { opacity: 1; }
+    }
+
+    /* 装饰小元素 */
+    .deco-stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .deco-star {
+      position: absolute;
+      font-size: 18px;
+      opacity: 0.2;
+      animation: twinkle 3s ease-in-out infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.15; transform: scale(1) rotate(0deg); }
+      50%      { opacity: 0.4; transform: scale(1.15) rotate(10deg); }
+    }
+
+    /* ======== 信件页 ======== */
+    #letter-page {
+      z-index: 5;
+      overflow-y: auto;
+      padding: 20px 10px;
+      align-items: flex-start;
+    }
+
+    /* 信封动画容器 */
+    .envelope-scene {
+      position: relative;
+      width: var(--envelope-w);
+      height: var(--envelope-h);
+      perspective: 800px;
+      transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .envelope-scene.opened {
+      width: min(680px, 92vw);
+      height: min(85vh, 800px);
+      overflow: visible;
+    }
+
+    /* 信封主体 */
+    .envelope-body {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, var(--pink-300), var(--pink-400));
+      border-radius: 10px;
+      box-shadow:
+        0 8px 32px var(--shadow-pink),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+      z-index: 2;
+      transition: opacity 0.6s ease 0.8s;
+      overflow: hidden;
+    }
+
+    .envelope-body::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 36px;
+      border: 2.5px solid rgba(255,255,255,0.35);
+      border-radius: 4px;
+    }
+
+    .envelope-body::after {
+      content: '🎀';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .envelope-scene.opened .envelope-body {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* 信封封盖（三角 flap） */
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 55%;
+      z-index: 3;
+      transform-origin: top center;
+      transition: transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
+      clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
+      background: linear-gradient(160deg, var(--pink-400), var(--pink-300));
+      box-shadow: inset 0 -2px 10px rgba(0,0,0,0.04);
+    }
+
+    .envelope-scene.opened .envelope-flap {
+      transform: rotateX(180deg);
+      z-index: 0;
+    }
+
+    /* 信纸 */
+    .letter-paper {
+      position: absolute;
+      left: 5%;
+      bottom: 5%;
+      width: 90%;
+      height: 88%;
+      background: var(--white);
+      border-radius: 8px;
+      z-index: 1;
+      padding: 28px 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border: 2px solid var(--pink-200);
+      transition: all 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s;
+      transform: translateY(0);
+      opacity: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .envelope-scene.opened .letter-paper {
+      transform: translateY(-5%);
+      opacity: 1;
+      height: 92%;
+      max-height: 72vh;
+    }
+
+    /* 信纸水印 */
+    .letter-paper::before {
+      content: '🎀';
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 56px;
+      opacity: 0.07;
+      pointer-events: none;
+      transform: rotate(-15deg);
+    }
+
+    .letter-paper::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--pink-300), var(--pink-400), var(--pink-300));
+      border-radius: 8px 8px 0 0;
+    }
+
+    .letter-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .letter-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .letter-header h2 {
+      font-family: 'Nunito', sans-serif;
+      font-size: calc(var(--letter-size) * 1.3);
+      font-weight: 800;
+      color: var(--pink-500);
+      margin-bottom: 4px;
+    }
+
+    .letter-header .deco-line {
+      display: inline-block;
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--pink-300), transparent);
+      margin: 6px 0;
+    }
+
+    .letter-text {
+      font-family: 'ZCOOL KuaiLe', 'Nunito', sans-serif;
+      font-size: var(--letter-size);
+      line-height: 2;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 0 4px;
+    }
+
+    .letter-text .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: var(--pink-500);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blinkCursor 0.8s step-end infinite;
+    }
+
+    .letter-text .cursor.done {
+      display: none;
+    }
+
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0; }
+    }
+
+    .letter-footer {
+      text-align: right;
+      margin-top: 12px;
+      font-family: 'ZCOOL KuaiLe', sans-serif;
+      font-size: calc(var(--letter-size) * 0.85);
+      color: var(--text-light);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 8px 22px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--pink-200), var(--pink-300));
+      color: var(--text);
+      font-family: 'ZCOOL KuaiLe', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px var(--shadow-soft);
+      align-self: center;
+    }
+
+    .back-btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 4px 16px var(--shadow-pink);
+    }
+
+    .back-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 滚动条美化 */
+    .letter-paper::-webkit-scrollbar,
+    .letter-text::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .letter-paper::-webkit-scrollbar-track,
+    .letter-text::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .letter-paper::-webkit-scrollbar-thumb,
+    .letter-text::-webkit-scrollbar-thumb {
+      background: var(--pink-200);
+      border-radius: 4px;
+    }
+
+    /* ======== 响应式 ======== */
+    @media (max-width: 480px) {
+      .cover-illustration {
+        width: min(200px, 55vw);
+        height: min(200px, 55vw);
+        margin: 12px 0 16px;
+      }
+
+      .envelope-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+      }
+
+      .letter-paper {
+        padding: 20px 16px;
+      }
+
+      .letter-text {
+        line-height: 1.9;
+      }
+
+      .envelope-scene.opened {
+        height: min(480px, 75vh);
+      }
+    }
+
+    @media (max-height: 600px) {
+      .cover-illustration {
+        width: 140px;
+        height: 140px;
+        margin: 8px 0 10px;
+      }
+
+      .cover-title { font-size: clamp(1.6rem, 5vw, 2.4rem); }
+      .cover-subtitle { font-size: clamp(0.7rem, 2vw, 1rem); }
+
+      .letter-paper {
+        padding: 16px 14px;
+      }
+
+      .letter-text {
+        font-size: clamp(0.85rem, 2.2vw, 1rem);
+      }
+    }
+
+    @media (min-width: 768px) {
+    }
+  </style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- 背景图案 -->
+  <div class="bg-pattern"></div>
+  <div class="bg-overlay"></div>
+
+  <!-- 粒子容器 -->
+  <div class="particles" id="particles"></div>
+
+  <!-- ====== 封面页 ====== -->
+  <div class="page" id="cover">
+    <div class="cover-content">
+      <!-- 装饰星 -->
+      <div class="deco-stars">
+        <span class="deco-star" style="top:8%;left:5%;">✨</span>
+        <span class="deco-star" style="top:15%;right:8%;font-size:14px;animation-delay:1s;">⭐</span>
+        <span class="deco-star" style="bottom:20%;left:10%;font-size:20px;animation-delay:0.5s;">🌸</span>
+        <span class="deco-star" style="top:40%;right:4%;font-size:16px;animation-delay:1.5s;">✨</span>
+        <span class="deco-star" style="bottom:35%;right:12%;font-size:12px;animation-delay:2s;">🎀</span>
+      </div>
+
+      <div class="title-wrapper">
+          <h1 class="cover-title">
+            <span class="title-particles">
+              <span class="title-particle" style="top:15%;left:-8%;animation-delay:0s;">💗</span>
+              <span class="title-particle" style="top:55%;right:-10%;animation-delay:1.8s;">✨</span>
+              <span class="title-particle" style="bottom:-5%;left:5%;animation-delay:3.6s;">💕</span>
+              <span class="title-particle" style="top:5%;right:-3%;animation-delay:5.4s;">🌸</span>
+            </span>
+            Happy Birthday<span class="bow-deco">🎀</span>
+          </h1>
+        </div>
+      <p class="cover-subtitle">To: <span>ooooh</span></p>
+
+      <div class="cover-illustration">
+        <img
+          src="images/forever.jpg"
+          alt="Hello Kitty Birthday"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        >
+        <div class="fallback">🎀🎂</div>
+      </div>
+
+      <button class="envelope-btn" id="openLetterBtn" aria-label="打开信件">
+        ✉️
+      </button>
+      <p class="envelope-btn-label">点 击 打 开 祝 福</p>
+    </div>
+  </div>
+
+  <!-- ====== 信件页 ====== -->
+  <div class="page hidden" id="letter-page">
+    <div class="envelope-scene" id="envelopeScene">
+      <!-- 信封封盖 -->
+      <div class="envelope-flap" id="envelopeFlap"></div>
+      <!-- 信封主体 -->
+      <div class="envelope-body"></div>
+      <!-- 信纸 -->
+      <div class="letter-paper" id="letterPaper">
+        <div class="letter-inner">
+          <div class="letter-header">
+            <h2>💌 给最最最亲爱的你</h2>
+            <div class="deco-line"></div>
+          </div>
+          <div class="letter-text" id="letterText"></div>
+          <div class="letter-footer">
+            —— 来自开开开开不了口同学
+          </div>
+        </div>
+        <button class="back-btn" id="backBtn">🏠 返回封面</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== 信件内容 =====
+  const LETTER_CONTENT = [
+    '亲爱的ooooh同学：',
+    '今天生日的话，肯德基有半价全家桶，麦当劳免费菠萝派/香芋派，必胜客免费领6寸披萨，星巴克免费咖啡1杯，网吧凭身份证免费上网，想想就很good了。',
+    '好快啊，我们认识好像有十年了吧，从小小的我们到大大的我们，遇见你真的很恨很很很很很幸运，我的福气啦！我也是一个感性的小男孩哈哈哈哈哈哈，每次遇到困难，你都可以给我意见帮助我，给我能量，同样我也希望我的存在能给你带来能量。',
+    '🎀 祝你生日快乐！🎀 也祝你毕业快乐！，祝愿美丽又坚强的小女孩，带着生日的甜和毕业的光，去享受属于你的传奇人生。干就完事了姐妹！Viva La Vida！',
+    '要一直开心呀🎂 杜淇霏同学！💕',
+    '🎉🎂🎈💖',
+    '—— 2026年6月10日'
+  ];
+
+  // ===== DOM 引用 =====
+  const cover        = document.getElementById('cover');
+  const letterPage   = document.getElementById('letter-page');
+  const envelopeScene= document.getElementById('envelopeScene');
+  const envelopeFlap = document.getElementById('envelopeFlap');
+  const letterPaper  = document.getElementById('letterPaper');
+  const letterText   = document.getElementById('letterText');
+  const openBtn      = document.getElementById('openLetterBtn');
+  const backBtn      = document.getElementById('backBtn');
+  const particles    = document.getElementById('particles');
+
+  let isOpen = false;
+  let isTyping = false;
+  let typeTimer = null;
+
+  // ===== 粒子系统 =====
+  const PARTICLE_COUNT = 32;
+  const PARTICLE_EMOJIS = ['💗', '✨', '🌸', '⭐', '💕', '🎀'];
+
+  function createParticles() {
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const el = document.createElement('div');
+      el.className = 'particle';
+      el.textContent = PARTICLE_EMOJIS[Math.floor(Math.random() * PARTICLE_EMOJIS.length)];
+      el.style.left = Math.random() * 100 + '%';
+      el.style.fontSize = (10 + Math.random() * 14) + 'px';
+      el.style.opacity = 0;
+      el.style.setProperty('--drift', (Math.random() - 0.5) * 120);
+      const duration = 8 + Math.random() * 14;
+      const delay = Math.random() * 20;
+      el.style.animationDuration = duration + 's';
+      el.style.animationDelay = delay + 's';
+      particles.appendChild(el);
+    }
+  }
+
+  // ===== 打字机效果 =====
+  function typeWriter(lines, element, index, charIndex, callback) {
+    if (!isTyping) return;
+    if (index >= lines.length) {
+      if (callback) callback();
+      return;
+    }
+
+    const line = lines[index];
+    const isFirstLine = (index === 0 && charIndex === 0);
+
+    if (charIndex === 0 && !isFirstLine) {
+      // 在新一行开始时，如果是空行则加快速度
+      if (line === '') {
+        element.innerHTML += '\n';
+        letterPaper.scrollTop = letterPaper.scrollHeight;
+        setTimeout(() => typeWriter(lines, element, index + 1, 0, callback), 120);
+        return;
+      }
+      element.innerHTML += '\n';
+      letterPaper.scrollTop = letterPaper.scrollHeight;
+    }
+
+    if (charIndex < line.length) {
+      element.innerHTML += line[charIndex];
+      letterPaper.scrollTop = letterPaper.scrollHeight;
+      typeTimer = setTimeout(() => typeWriter(lines, element, index, charIndex + 1, callback), 35 + Math.random() * 30);
+    } else {
+      typeTimer = setTimeout(() => typeWriter(lines, element, index + 1, 0, callback), 200);
+    }
+  }
+
+  function startTypewriter() {
+    if (isTyping) return;
+    isTyping = true;
+    letterText.innerHTML = '';
+    // 先去除首行换行
+    typeWriter(LETTER_CONTENT, letterText, 0, 0, () => {
+      isTyping = false;
+    });
+  }
+
+  function stopTypewriter() {
+    isTyping = false;
+    if (typeTimer) {
+      clearTimeout(typeTimer);
+      typeTimer = null;
+    }
+  }
+
+  // ===== 打开信件 =====
+  function openLetter() {
+    if (isOpen) return;
+    isOpen = true;
+
+    // 1. 封面淡出
+    cover.classList.add('hidden');
+
+    // 2. 显示信件页
+    letterPage.classList.remove('hidden');
+
+    // 3. 强制回流后执行信封打开动画
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        envelopeScene.classList.add('opened');
+
+        // 4. 等信纸出现后开始打字机
+        const paperTimer = setTimeout(() => {
+          startTypewriter();
+        }, 1200);
+      });
+    });
+  }
+
+  // ===== 返回封面 =====
+  function goBack() {
+    if (!isOpen) return;
+    isOpen = false;
+    stopTypewriter();
+
+    // 1. 重置信封动画
+    envelopeScene.classList.remove('opened');
+
+    // 2. 等待动画重置后
+    const resetTimer = setTimeout(() => {
+      // 3. 隐藏信件页
+      letterPage.classList.add('hidden');
+      // 4. 显示封面
+      cover.classList.remove('hidden');
+      // 5. 清空信纸文字
+      letterText.innerHTML = '';
+    }, 600);
+  }
+
+  // ===== 事件绑定 =====
+  openBtn.addEventListener('click', openLetter);
+  backBtn.addEventListener('click', goBack);
+
+  // 键盘支持
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) {
+      goBack();
+    }
+    if (e.key === 'Enter' && !isOpen) {
+      openLetter();
+    }
+  });
+
+  // ===== 初始化 =====
+  createParticles();
+
+  console.log('🎀 Happy Birthday! 🎀');
+  console.log('送给最亲爱的朋友，愿一切美好如期而至。💖');
+})();
+</script>
+
+</body>
+</html>
